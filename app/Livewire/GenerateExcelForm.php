@@ -132,7 +132,7 @@ class GenerateExcelForm extends Component
                 $activeWorksheet->setCellValue('C'.$row, $producto['total_existencia']);
                 $activeWorksheet->setCellValue('D'.$row, $producto['titulo']);
                 $activeWorksheet->setCellValue('E'.$row, $producto['marca']);
-                $activeWorksheet->setCellValue('F'.$row, $producto['marca_logo']);
+                $activeWorksheet->setCellValue('F'.$row, $producto['img_portada']);
                 $activeWorksheet->setCellValue('G'.$row, '');
                 $activeWorksheet->setCellValue('H'.$row, '');
                 $activeWorksheet->setCellValue('I'.$row, $producto['precios']['precio_especial'] ?? '');
