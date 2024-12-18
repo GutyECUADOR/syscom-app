@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -16,6 +17,9 @@ class GenerateExcelForm extends Component
     // Método que se ejecutará cuando el enlace sea clickeado
     public function handleClick()
     {
+        $this->isSubmitting = true;
+        session()->flash('message', '¡Proesando!');
+
          // Inicializar el cliente HTTP Guzzle
          $client = new Client([
             'base_uri' => 'https://developers.syscomcolombia.com',
@@ -115,16 +119,19 @@ class GenerateExcelForm extends Component
             $row++;
         }
 
-        // Preparar la descarga
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="archivo.xlsx"');
-        header('Cache-Control: max-age=0');
+        session()->flash('message', '¡El archivo se ha generado correctamente!');
+        $this->isSubmitting = false;
 
+        $fileName = 'productos.xlsx';
         $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
+        $filePath = storage_path($fileName);
+        $writer->save($filePath);
+
+        // Retornar el archivo como respuesta para descargar
+        return Response::download($filePath)->deleteFileAfterSend(true);
         
         // Success
-        //session()->flash('message', '¡El archivo se ha generado correctamente!');
+        
     }
 
 
