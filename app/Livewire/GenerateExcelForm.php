@@ -91,7 +91,7 @@ class GenerateExcelForm extends Component
                 array_push($array_productos_bymarca, $response_paginas['productos']);
 
             }
-
+            //dd($array_productos_bymarca[0][0]["precios"]["precio_especial"]);
             break; // Detiene el bucle después de la primera iteración FOR TESTS
         }
 
@@ -106,16 +106,41 @@ class GenerateExcelForm extends Component
         $spreadsheet = new Spreadsheet();
         $activeWorksheet = $spreadsheet->getActiveSheet();
         // Encabezados
-        $activeWorksheet->setCellValue('A1', 'producto_id');
-        $activeWorksheet->setCellValue('B1', 'modelo');
-        $activeWorksheet->setCellValue('C1', 'total_existencia');
+        $activeWorksheet->setCellValue('A1', 'PRODUCTOID');
+        $activeWorksheet->setCellValue('B1', 'MODELO');
+        $activeWorksheet->setCellValue('C1', 'TOTALEXISTENCIAS');
+        $activeWorksheet->setCellValue('D1', 'TITULO');
+        $activeWorksheet->setCellValue('E1', 'MARCA');
+        $activeWorksheet->setCellValue('F1', 'IMAGEN01');
+        $activeWorksheet->setCellValue('G1', 'IDMENUVL3');
+        $activeWorksheet->setCellValue('H1', 'MENULV3');
+        $activeWorksheet->setCellValue('I1', 'PRECIOESPECIAL');
+        $activeWorksheet->setCellValue('J1', 'PRECIODESCUENTO');
+        $activeWorksheet->setCellValue('K1', 'PRECIOLISTA');
+
+        foreach ($activeWorksheet->getColumnIterator() as $column) {
+            $activeWorksheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
+        }
+
+        $activeWorksheet->getStyle('A1:K1')->getFont()->setBold(true);
 
         $row = 2;
         foreach ($array_productos_bymarca as $array_productos) {
             foreach ($array_productos as $producto) {
-                $activeWorksheet->setCellValue('A'.$row, $producto["modelo"]);
+                $activeWorksheet->setCellValue('A'.$row, $producto['producto_id']);
+                $activeWorksheet->setCellValue('B'.$row, $producto['modelo']);
+                $activeWorksheet->setCellValue('C'.$row, $producto['total_existencia']);
+                $activeWorksheet->setCellValue('D'.$row, $producto['titulo']);
+                $activeWorksheet->setCellValue('E'.$row, $producto['marca']);
+                $activeWorksheet->setCellValue('F'.$row, $producto['marca_logo']);
+                $activeWorksheet->setCellValue('G'.$row, '');
+                $activeWorksheet->setCellValue('H'.$row, '');
+                $activeWorksheet->setCellValue('I'.$row, $producto['precios']['precio_especial'] ?? '');
+                $activeWorksheet->setCellValue('J'.$row, $producto['precios']['precio_descuento'] ?? '');
+                $activeWorksheet->setCellValue('K'.$row, $producto['precios']['precio_lista'] ?? '');
+                
+                $row++;
             }
-            $row++;
         }
 
         session()->flash('message', '¡El archivo se ha generado correctamente!');
