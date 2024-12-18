@@ -19,4 +19,5 @@ Route::get('/', function () {
 });
 
 Route::get('/generateExcel', [SysComController::class, 'index'])->name('generateExcel');
+Route::get('/createExcel', [SysComController::class, 'create'])->name('createExcel');
 
