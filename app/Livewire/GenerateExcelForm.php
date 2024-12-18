@@ -18,8 +18,7 @@ class GenerateExcelForm extends Component
     public function handleClick()
     {
         $this->isSubmitting = true;
-        session()->flash('message', '¡Proesando!');
-
+       
          // Inicializar el cliente HTTP Guzzle
          $client = new Client([
             'base_uri' => 'https://developers.syscomcolombia.com',

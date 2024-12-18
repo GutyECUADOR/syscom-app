@@ -25,11 +25,15 @@
 
             <button 
                 wire:click="handleClick" 
-                class="mt-5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                class="mt-5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-blue-400"
                 wire:target="handleClick"
                 wire:loading.attr="disabled" >
-                <span wire:loading.remove>Generar Excel <i class="fe fe-credit-card ms-2"></i></span>
+                <span wire:loading.remove>
+                    <i class="fa fa-file fa-sping" aria-hidden="true"></i>
+                    Generar Excel 
+                </span>
                 <span wire:loading>
+                    <i class="fa fa-cog fa-spin"></i>
                         Procesando, espere.
                 </span>
             </button>
