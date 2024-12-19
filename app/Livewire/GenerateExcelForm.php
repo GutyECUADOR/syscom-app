@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -18,7 +19,7 @@ class GenerateExcelForm extends Component
     public function handleClick()
     {
         $this->isSubmitting = true;
-       
+
          // Inicializar el cliente HTTP Guzzle
          $client = new Client([
             'base_uri' => 'https://developers.syscomcolombia.com',
@@ -60,48 +61,65 @@ class GenerateExcelForm extends Component
         $array_productos_bymarca = [];
 
         foreach ($array_marcas as $marca) {
-            //echo $marca['nombre']."\n";
-
+            $marca = $marca['id'];
+            //$marca = '3m'; //test category - descomentar el brake;
             // Consulta de la primra página de la marca
-            $response = $client->get('/api/v1/marcas/'.'hikvision'.'/productos?pagina=1', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $token,
-                    'Accept'        => 'application/json',
-                ],
-            ]);
 
-            // Get array de marcas
-            $body = $response->getBody();
-            $response_paginas = json_decode($body, true);
-
-            array_push($array_productos_bymarca, $response_paginas['productos']);
-
-            // Consulta de todas las páginas de cada categoria
-            for ($pagina=1; $pagina < $response_paginas['paginas']; $pagina++) {
-                // Consulta de todas las páginas restantes de la marca
-                $response = $client->get('/api/v1/marcas/'.'hikvision'.'/productos?pagina='.$pagina, [
+            try {
+                $response = $client->get('/api/v1/marcas/'.$marca.'/productos', [
                     'headers' => [
                         'Authorization' => 'Bearer ' . $token,
                         'Accept'        => 'application/json',
                     ],
                 ]);
 
+                // Get array de marcas
                 $body = $response->getBody();
                 $response_paginas = json_decode($body, true);
+
                 array_push($array_productos_bymarca, $response_paginas['productos']);
 
+                //LOG
+                Log::build([
+                    'driver' => 'single',
+                    'path' => storage_path('logs/syscom-api.log'),
+                    ])->info(json_encode([$marca, $response_paginas['cantidad']]));
+
+                 // Consulta de todas las páginas de cada categoria
+                for ($pagina=1; $pagina < $response_paginas['paginas']; $pagina++) {
+                    // Consulta de todas las páginas restantes de la marca
+                    $response = $client->get('/api/v1/marcas/'.$marca.'/productos?pagina='.$pagina, [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $token,
+                            'Accept'        => 'application/json',
+                        ],
+                    ]);
+
+                    $body = $response->getBody();
+                    $response_paginas = json_decode($body, true);
+                    array_push($array_productos_bymarca, $response_paginas['productos']);
+                    //LOG
+                    Log::build([
+                        'driver' => 'single',
+                        'path' => storage_path('logs/syscom-api.log'),
+                        ])->info(json_encode([$marca, $response_paginas['cantidad']]));
+
+                }
+
+
+            } catch (\Exception $ex) {
+                Log::build([
+                    'driver' => 'single',
+                    'path' => storage_path('logs/syscom-api.log'),
+                ])->error($ex->getMessage());
             }
+
+
             //dd($array_productos_bymarca[0][0]["precios"]["precio_especial"]);
-            break; // Detiene el bucle después de la primera iteración FOR TESTS
+            //dd($array_productos_bymarca[0][0]["categorias"][0]["nombre"]);
+            //break; // Detiene el bucle después de la primera iteración FOR TESTS
+
         }
-
-
-       /*  foreach ($array_productos_bymarca as $array_productos) {
-            foreach ($array_productos as $producto) {
-                echo $producto['modelo'];
-               dd($producto);
-            }
-        } */
 
         $spreadsheet = new Spreadsheet();
         $activeWorksheet = $spreadsheet->getActiveSheet();
@@ -133,12 +151,12 @@ class GenerateExcelForm extends Component
                 $activeWorksheet->setCellValue('D'.$row, $producto['titulo']);
                 $activeWorksheet->setCellValue('E'.$row, $producto['marca']);
                 $activeWorksheet->setCellValue('F'.$row, $producto['img_portada']);
-                $activeWorksheet->setCellValue('G'.$row, '');
-                $activeWorksheet->setCellValue('H'.$row, '');
+                $activeWorksheet->setCellValue('G'.$row, $producto['categorias'][0]['id'] ?? '');
+                $activeWorksheet->setCellValue('H'.$row, $producto['categorias'][0]['nombre'] ?? '');
                 $activeWorksheet->setCellValue('I'.$row, $producto['precios']['precio_especial'] ?? '');
                 $activeWorksheet->setCellValue('J'.$row, $producto['precios']['precio_descuento'] ?? '');
                 $activeWorksheet->setCellValue('K'.$row, $producto['precios']['precio_lista'] ?? '');
-                
+
                 $row++;
             }
         }
@@ -153,9 +171,9 @@ class GenerateExcelForm extends Component
 
         // Retornar el archivo como respuesta para descargar
         return Response::download($filePath)->deleteFileAfterSend(true);
-        
+
         // Success
-        
+
     }
 
 
