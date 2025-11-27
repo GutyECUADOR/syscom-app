@@ -83,10 +83,10 @@ class GenerateExcelForm extends Component
                 Log::build([
                     'driver' => 'single',
                     'path' => storage_path('logs/syscom-api.log'),
-                    ])->info(json_encode([$marca, $response_paginas['cantidad']]));
+                    ])->info(json_encode([$marca, $response_paginas['cantidad'], $response_paginas['paginas']]));
 
                  // Consulta de todas las páginas de cada categoria
-                for ($pagina=1; $pagina < $response_paginas['paginas']; $pagina++) {
+                for ($pagina=2; $pagina <= $response_paginas['paginas']; $pagina++) {
                     // Consulta de todas las páginas restantes de la marca
                     $response = $client->get('/api/v1/marcas/'.$marca.'/productos?pagina='.$pagina, [
                         'headers' => [
@@ -102,7 +102,7 @@ class GenerateExcelForm extends Component
                     Log::build([
                         'driver' => 'single',
                         'path' => storage_path('logs/syscom-api.log'),
-                        ])->info(json_encode([$marca, $response_paginas['cantidad']]));
+                        ])->info(json_encode([$marca, $response_paginas['cantidad'], $pagina]));
 
                 }
 
